@@ -36,10 +36,24 @@ func main() {
 	db.AutoMigrate(&Product{})
 
 	r := gin.Default()
-	r.GET("/", GetProducts)
+	r.GET("/products/", GetProducts)
+	r.GET("/products/:id", ShowProduct)
 
 	r.Run(":8080")
 
+}
+
+func ShowProduct(c *gin.Context) {
+	id := c.Params.ByName("id")
+
+	var product Product
+	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+		c.AbortWithStatus(404)
+
+		fmt.Println(err)
+	} else {
+		c.JSON(200, product)
+	}
 }
 
 func GetProducts(c *gin.Context) {
