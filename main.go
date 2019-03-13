@@ -19,7 +19,6 @@ type Product struct {
 	ExpirationDate time.Time `gorm:"default:null"`
 	CreatedAt      time.Time `gorm:"default:NOW()"`
 	UpdatedAt      time.Time `gorm:"default:NOW()"`
-	DeletedAt      time.Time `gorm:"default:null"`
 }
 
 func main() {
@@ -38,9 +37,39 @@ func main() {
 	r := gin.Default()
 	r.GET("/products/", GetProducts)
 	r.GET("/products/:id", ShowProduct)
+	r.POST("/products", CreateProduct)
+	r.PUT("/products/:id", UpdateProduct)
+	r.DELETE("/products/:id", DeleteProduct)
 
 	r.Run(":8080")
 
+}
+
+func CreateProduct(c *gin.Context) {
+	var product Product
+	c.BindJSON(&product)
+
+	if err := db.Create(&product).Error; err != nil {
+		c.AbortWithStatus(422)
+		fmt.Println(err)
+	} else {
+		c.JSON(200, product)
+	}
+}
+
+func UpdateProduct(c *gin.Context) {
+	id := c.Params.ByName("id")
+	var product Product
+
+	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+		c.AbortWithStatus(404)
+		fmt.Println(err)
+	}
+
+	c.BindJSON(&product)
+	db.Save(&product)
+
+	c.JSON(200, product)
 }
 
 func ShowProduct(c *gin.Context) {
@@ -65,4 +94,17 @@ func GetProducts(c *gin.Context) {
 		c.JSON(200, products)
 	}
 
+}
+
+func DeleteProduct(c *gin.Context) {
+	id := c.Params.ByName("id")
+
+	var product Product
+	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+		c.AbortWithStatus(404)
+		fmt.Println(err)
+	} else {
+		db.Delete(&product)
+		c.JSON(200, product)
+	}
 }
