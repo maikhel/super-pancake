@@ -63,7 +63,7 @@ func main() {
 	r.PUT("/products/:id", UpdateProduct)
 	r.DELETE("/products/:id", DeleteProduct)
 
-	r.Run(":8080")
+	r.Run(":" + os.Getenv("PORT"))
 
 }
 
