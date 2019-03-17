@@ -29,6 +29,7 @@ var DatabaseUser = os.Getenv("DB_USER")
 var DatabaseName = os.Getenv("DB_NAME")
 var DatabasePassword = os.Getenv("DB_PASSWORD")
 var DatabasePort = os.Getenv("DB_PORT")
+var Environment = os.Getenv("ENVIRONMENT")
 
 func main() {
 
@@ -47,7 +48,15 @@ func main() {
 	db.LogMode(true)
 	db.AutoMigrate(&Product{})
 
+	fmt.Printf("ENVIRONMENT SET TO=%+v\n", Environment)
+
+	if Environment == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 	r := gin.Default()
+
 	r.GET("/products/", GetProducts)
 	r.GET("/products/:id", ShowProduct)
 	r.POST("/products", CreateProduct)
