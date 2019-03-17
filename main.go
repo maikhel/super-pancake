@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var db *gorm.DB
+var err error
 
 type Product struct {
 	ID             int       `gorm:"primary_key"`
@@ -21,17 +24,27 @@ type Product struct {
 	UpdatedAt      time.Time `gorm:"default:NOW()"`
 }
 
+var DatabaseHost = os.Getenv("DB_HOST")
+var DatabaseUser = os.Getenv("DB_USER")
+var DatabaseName = os.Getenv("DB_NAME")
+var DatabasePassword = os.Getenv("DB_PASSWORD")
+var DatabasePort = os.Getenv("DB_PORT")
+
 func main() {
 
-	var err error
+	dsn := fmt.Sprintf(
+		"host=%s user=%s dbname=%s port=%s password=%s sslmode=disable connect_timeout=5",
+		DatabaseHost, DatabaseUser, DatabaseName, DatabasePort, DatabasePassword,
+	)
 
-	db, err = gorm.Open("postgres", "host=localhost port=5432 user=food_user dbname=food_db password=password sslmode=disable connect_timeout=5")
+	db, err = gorm.Open("postgres", dsn)
 
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
+	db.LogMode(true)
 	db.AutoMigrate(&Product{})
 
 	r := gin.Default()
