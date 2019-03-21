@@ -113,7 +113,7 @@ func GetProducts(c *gin.Context) {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
 	} else {
-		c.JSON(200, products)
+		c.JSON(200, map[string]interface{}{"products": products})
 	}
 
 }
