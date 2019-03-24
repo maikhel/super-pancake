@@ -8,3 +8,6 @@ install-dependencies:
 
 local-run:
 	go run main.go
+
+test:
+	godotenv -f .env go test  ./...
