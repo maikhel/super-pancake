@@ -3,50 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
+
+	"github.com/maikhel/food-app/models"
 )
 
-var db *gorm.DB
-var err error
-
-type Product struct {
-	ID             int       `gorm:"primary_key"`
-	Name           string    `gorm:"type:varchar(255)"`
-	Amount         int       `gorm:"type:int"`
-	Weight         float64   `gorm:"type:float(2)"`
-	ExpirationDate time.Time `gorm:"default:null"`
-	CreatedAt      time.Time `gorm:"default:NOW()"`
-	UpdatedAt      time.Time `gorm:"default:NOW()"`
-}
-
-var DatabaseHost = os.Getenv("DB_HOST")
-var DatabaseUser = os.Getenv("DB_USER")
-var DatabaseName = os.Getenv("DB_NAME")
-var DatabasePassword = os.Getenv("DB_PASSWORD")
-var DatabasePort = os.Getenv("DB_PORT")
 var Environment = os.Getenv("ENVIRONMENT")
 
 func main() {
-
-	dsn := fmt.Sprintf(
-		"host=%s user=%s dbname=%s port=%s password=%s sslmode=disable connect_timeout=5",
-		DatabaseHost, DatabaseUser, DatabaseName, DatabasePort, DatabasePassword,
-	)
-
-	db, err = gorm.Open("postgres", dsn)
-
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	db.LogMode(true)
-	db.AutoMigrate(&Product{})
 
 	fmt.Printf("ENVIRONMENT SET TO=%+v\n", Environment)
 
@@ -68,10 +34,10 @@ func main() {
 }
 
 func CreateProduct(c *gin.Context) {
-	var product Product
+	var product models.Product
 	c.BindJSON(&product)
 
-	if err := db.Create(&product).Error; err != nil {
+	if err := models.DB.Create(&product).Error; err != nil {
 		c.AbortWithStatus(422)
 		fmt.Println(err)
 	} else {
@@ -81,15 +47,15 @@ func CreateProduct(c *gin.Context) {
 
 func UpdateProduct(c *gin.Context) {
 	id := c.Params.ByName("id")
-	var product Product
+	var product models.Product
 
-	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+	if err := models.DB.Where("id = ?", id).First(&product).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
 	}
 
 	c.BindJSON(&product)
-	db.Save(&product)
+	models.DB.Save(&product)
 
 	c.JSON(200, product)
 }
@@ -97,8 +63,8 @@ func UpdateProduct(c *gin.Context) {
 func ShowProduct(c *gin.Context) {
 	id := c.Params.ByName("id")
 
-	var product Product
-	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+	var product models.Product
+	if err := models.DB.Where("id = ?", id).First(&product).Error; err != nil {
 		c.AbortWithStatus(404)
 
 		fmt.Println(err)
@@ -108,8 +74,8 @@ func ShowProduct(c *gin.Context) {
 }
 
 func GetProducts(c *gin.Context) {
-	var products []Product
-	if err := db.Find(&products).Error; err != nil {
+	var products []models.Product
+	if err := models.DB.Find(&products).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
 	} else {
@@ -121,12 +87,12 @@ func GetProducts(c *gin.Context) {
 func DeleteProduct(c *gin.Context) {
 	id := c.Params.ByName("id")
 
-	var product Product
-	if err := db.Where("id = ?", id).First(&product).Error; err != nil {
+	var product models.Product
+	if err := models.DB.Where("id = ?", id).First(&product).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
 	} else {
-		db.Delete(&product)
+		models.DB.Delete(&product)
 		c.JSON(200, product)
 	}
 }
