@@ -1,0 +1,53 @@
+version: 2.1
+commands:
+  install_dep:
+    description: "Install dep package manager"
+    steps:
+      - run:
+          name: Install dep
+          command: go get -u github.com/golang/dep/cmd/dep
+  build_binaries:
+    description: "Build binaries"
+    steps:
+      - install_dep
+
+      - run:
+          name: Build project
+          command: make
+
+jobs:
+  unit-tests:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/maikhel/super-pancake
+    steps:
+      - checkout
+
+      - install_dep
+
+      - run:
+          name: Run unit tests
+          command: make test-with-report
+
+      # - run:
+      #     name: Publish tests coverage report
+      #     command: bash <(curl -s https://codecov.io/bash)
+
+  build:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/maikhel/super-pancake
+    steps:
+      - checkout
+
+      - install_dep
+
+      - build_binaries
+
+
+workflows:
+  version: 2
+  build-and-migrate:
+    jobs:
+      - unit-tests
+      - build

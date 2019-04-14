@@ -1,6 +1,8 @@
 
 # golang output binary directory
 bin
+super-pancake
+coverage.txt
 
 # golang vendor (dependencies) directory
 vendor

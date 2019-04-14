@@ -1,3 +1,3 @@
 # Foodu
 
-Simple application for training golang.
+Simple application for training golang

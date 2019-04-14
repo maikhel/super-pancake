@@ -1,13 +1,17 @@
 build: install-dependencies
-	env GOOS=linux go build -ldflags="-s -w" -o main main.go
-	mkdir -p bin
-	mv main bin/
+	go build -o super-pancake
 
 install-dependencies:
 	dep ensure
 
-local-run:
-	go run main.go
+run: install-dependencies
+	go build -o super-pancake && ./super-pancake
 
-test:
-	godotenv -f .env go test  ./...
+test: install-dependencies
+	go test
+
+test-with-report: install-dependencies
+	go test -coverprofile=coverage.txt -covermode=atomic
+
+test-html-report: test-with-report
+	go tool cover -html=coverage.txt
