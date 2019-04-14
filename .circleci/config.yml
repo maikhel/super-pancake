@@ -29,9 +29,9 @@ jobs:
           name: Run unit tests
           command: make test-with-report
 
-      # - run:
-      #     name: Publish tests coverage report
-      #     command: bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: Publish tests coverage report
+          command: bash <(curl -s https://codecov.io/bash)
 
   build:
     docker:
