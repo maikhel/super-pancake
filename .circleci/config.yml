@@ -14,16 +14,46 @@ commands:
       - run:
           name: Build project
           command: make
+  prepare_for_tests:
+    description: "Prepare environment for tests"
+    steps:
+      - checkout
+
+      - install_dep
+
+      - run: go get github.com/joho/godotenv/cmd/godotenv
+
+      - run:
+          name: Waiting for Postgres to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgres && exit 1
 
 jobs:
   unit-tests:
     docker:
       - image: circleci/golang:1.10
+      - image: circleci/postgres:9.6-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: super_pancake_db
+   
     working_directory: /go/src/github.com/maikhel/super-pancake
-    steps:
-      - checkout
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_NAME: super_pancake_db
+      DB_PORT: 5432
 
-      - install_dep
+    steps:
+      - prepare_for_tests
 
       - run:
           name: Run unit tests
