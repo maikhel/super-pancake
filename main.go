@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 
-	"github.com/maikhel/food-app/models"
+	"github.com/maikhel/super-pancake/models"
 )
 
 var Environment = os.Getenv("ENVIRONMENT")
