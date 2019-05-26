@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
@@ -26,6 +28,7 @@ func main() {
 	r.GET("/products/", GetProducts)
 	r.GET("/products/:id", ShowProduct)
 	r.POST("/products", CreateProduct)
+	r.POST("/products/batch_update", BatchUpdateProducts)
 	r.PUT("/products/:id", UpdateProduct)
 	r.DELETE("/products/:id", DeleteProduct)
 
@@ -60,11 +63,35 @@ func UpdateProduct(c *gin.Context) {
 	c.JSON(200, product)
 }
 
+func BatchUpdateProducts(c *gin.Context) {
+	var products []models.Product
+	c.BindJSON(&products)
+
+	for _, element := range products {
+		product, err := models.GetProduct(element.ID)
+		if err != nil {
+			fmt.Println("Product not found, creating new one")
+
+			models.CreateProduct(&element)
+		} else {
+			var payload map[string]interface{}
+			inrec, _ := json.Marshal(element)
+			json.Unmarshal(inrec, &payload)
+
+			models.UpdateProduct(product, payload)
+		}
+	}
+
+	updatedProducts, _ := models.GetProducts()
+	c.JSON(200, map[string]interface{}{"products": updatedProducts})
+}
+
 func ShowProduct(c *gin.Context) {
 	id := c.Params.ByName("id")
+	intID, _ := strconv.Atoi(id)
 
-	var product models.Product
-	if err := models.DB.Where("id = ?", id).First(&product).Error; err != nil {
+	product, err := models.GetProduct(intID)
+	if err != nil {
 		c.AbortWithStatus(404)
 
 		fmt.Println(err)

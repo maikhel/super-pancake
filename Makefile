@@ -4,7 +4,7 @@ build: install-dependencies
 install-dependencies:
 	dep ensure
 
-run: install-dependencies
+local-run: install-dependencies
 	go build -o super-pancake && ./super-pancake
 
 test: install-dependencies
