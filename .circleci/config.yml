@@ -74,10 +74,27 @@ jobs:
 
       - build_binaries
 
+  deploy:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - checkout
+      - run:
+          name: Deploy Staging branch to Heroku
+          command: |
+            git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git staging:master
+
 
 workflows:
   version: 2
-  build-and-migrate:
+  build-and-deploy:
     jobs:
       - unit-tests
       - build
+      - deploy:
+          requires:
+            - unit-tests
+            - build
+          filters:
+            branches:
+              only: staging
